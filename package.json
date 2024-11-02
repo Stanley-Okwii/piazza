@@ -1,0 +1,30 @@
+{
+  "name": "piazza",
+  "version": "1.0.0",
+  "description": "An API to create, read, write and update posts",
+  "main": "app.ts",
+  "scripts": {
+    "start": "nodemon app.ts",
+    "start:dev": "npx nodemon",
+    "build": "rimraf ./build && tsc",
+    "start:production": "npm run build && node build/index.js"
+  },
+  "keywords": [
+    "piazza"
+  ],
+  "author": "stanley.okwii@gmail.com",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "mongoose": "^8.7.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.8.6",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}
