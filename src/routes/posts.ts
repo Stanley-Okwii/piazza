@@ -4,51 +4,51 @@ import { Post } from '../models/Post';
 
 const router = express.Router();
 
-
-// POST (Create data)
+// Create a single post
 router.post('/', async(req,res) => {
     try {
+        const userId = "672fabc8307ab120110a5b47";
+        const expiresIn = req.body.expiresIn;
+        // Calculate the expiration date
+        const expiresAt = new Date(Date.now() + expiresIn * 60 * 1000);
         const newPost = await Post.create({
-            user:req.body.user,
-            title:req.body.title,
-            text:req.body.text,
-            hashtag:req.body.hashtag,
-            location:req.body.location,
-            url:req.body.url
-        });
-        res.send(newPost)
+            author: userId,
+            expiresAt,
+            ...req.body
+        })
+        res.status(201).json(newPost);
     }catch(err){
         res.send({message:err})
     }
 })
 
-// GET 1 (Read all)
+// Get all posts
 router.get('/', async(req,res) =>{
     try {
-        const getPosts = await Post.find().limit(10)
-        res.send(getPosts)
+        const allPosts = await Post.find().populate('author', "email firstName lastName")
+        res.send(allPosts)
     } catch(err){
         res.send({message:err})
     }
 })
 
-// GET 2 (Read by ID)
+// Get post by postId
 router.get('/:postId', async(req,res) =>{
     try {
-        const getPostById = await Post.findById(req.params.postId)
-        res.send(getPostById)
+        const getPostById = await Post.findById(req.params.postId).populate('author', "email firstName lastName")
+        res.status(200).json(getPostById)
     } catch(err){
         res.send({message:err})
     }
 })
 
-// PATCH (Update)
+// Update post by postId
 router.patch('/:postId', async(req,res) =>{
     try {
         const updatePostById = await Post.updateOne(
             {_id:req.params.postId},
             {$set:{
-                user:req.body.user,
+                author:req.body.user,
                 title:req.body.title,
                 text:req.body.text,
                 hashtag:req.body.hashtag,
@@ -62,7 +62,7 @@ router.patch('/:postId', async(req,res) =>{
     }
 })
 
-// DELETE (Delete)
+// Delete a post by postId
 router.delete('/:postId',async(req,res)=>{
     try {
         const deletePostById = await Post.deleteOne({_id:req.params.postId})

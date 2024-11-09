@@ -1,64 +1,111 @@
-import { model, Schema, Document } from 'mongoose';
+import { Model, model, Schema } from "mongoose";
+import { IPost, IPostMethods, IPostDocument } from "../interfaces/Post";
 
+enum Topic {
+  POLITICS = "Politics",
+  HEALTH = "Health",
+  SPORTS = "Sports",
+  TECH = "Tech",
+}
 
-export const PostSchema: Schema = new Schema({
-    user:{
-        type:String,
-        required:true
+enum Status {
+  Live = "Live",
+  Expired = "Expired",
+}
+
+// Create PostModel type that's aware of PostMethods
+type PostModel = Model<IPost, {}, IPostMethods>;
+
+export const PostSchema: Schema<IPostDocument, PostModel> = new Schema<
+  IPostDocument,
+  {},
+  IPostMethods
+>({
+  author: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: false,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  content: {
+    type: String,
+    required: true,
+  },
+  topics: [
+    {
+      type: String,
+      enum: Topic,
+      required: true,
     },
-    title:{
-        type:String,
-        required:true
-    },
-    text:{
-        type:String,
-        required:true
-    },
-    hashtag:{
-        type:String,
-        required:true
-    },
-    location:{
-        type:String,
-        required:true
-    },
-    url:{
-        type:String,
-        required:true
-    },
-    date:{
-        type:Date,
-        default:Date.now
+  ],
+  status: {
+    type: String,
+    enum: Status,
+    default: Status.Live,
+  },
+  expiresAt: {
+    type: Date,
+    required: true,
+  }
+}, { timestamps: true });
+// timestamps adds createdAt and modifiedAt attributes to the model
+
+PostSchema.method("isExpired", function isExpired() {
+  const currentTime = new Date();
+  return currentTime > this.expiresAt;
+});
+
+// Middleware to check and update `status` on individual documents after a query
+async function setExpirationStatus(post: IPostDocument) {
+    
+    if (post.isExpired() && post.status !== Status.Expired) {
+      post.status = Status.Expired;
+      await post.save();
+    }
+  }
+  
+  // Apply middleware after `find` to each document in the result set
+PostSchema.pre("find", async function (next) {
+    // console.log('print ', this.getQuery());
+    // debugger
+    // console.log('posts ', await this.model.find({'status': Status.Live}));
+    try {
+    const posts: Array<IPostDocument> = await this.model.find({'status': Status.Live});
+    console.log('posts ', posts);
+
+    // posts.forEach((post: IPostDocument) => {
+    //     // setExpirationStatus(post)});
+    // post.status = Status.Expired;
+    // await post.save();
+    // });
+    for (const post of posts) {
+        if (post.isExpired()) {
+            post.status = Status.Expired;
+            await post.save();
+        }
+      }
+      next();
+    } catch (err) {
+        console.log('err', err);
+        next()
     }
 });
 
-export const Post = model<Document>('Post', PostSchema);
-
-// module.exports = mongoose.model('posts',PostSchema);
-
-// export interface User {
-//     _id: string;
-//     email: string;
-//     password: string;
-//   }
-
-
-// import { model, Schema, Document } from 'mongoose';
-// // import { User } from '@interfaces/users.interface';
-
-
-// const userSchema: Schema = new Schema({
-//   email: {
-//     type: String,
-//     required: true,
-//     unique: true,
-//   },
-//   password: {
-//     type: String,
-//     required: true,
-//   },
+// Apply middleware after `findOne` to a single document
+PostSchema.pre("findOne", async function (next) {
+    const post: IPostDocument | null = await this.model.findOne({'status': Status.Expired});
+    if (post) {
+        setExpirationStatus(post);
+    }
+    return next();
+});
+  
+// Set updatedAt value each time a Post document is updated
+// PostSchema.pre("updateOne", function () {
+// this.set({ updatedAt: new Date() });
 // });
-
-// const userModel = model<User & Document>('User', userSchema);
-
-// export default userModel;
+// Pre Get 
+export const Post = model<IPostDocument>("Post", PostSchema);
