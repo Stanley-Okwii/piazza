@@ -5,13 +5,17 @@ import { env } from 'node:process';
 import dotenv from 'dotenv';
 
 import { router as postsRoute } from './routes/posts';
+import { router as userRoute } from './routes/users';
 
 dotenv.config();
 
 const app = express();
 
 app.use(bodyParser.json());
-app.use('/posts', postsRoute);
+app.use('/api/posts', postsRoute);
+app.use('/api/users', userRoute);
+
+// app.use('/api/users', userRoute);
 
 mongoose.connect(`${env.DB_URI}`, {dbName: 'piazza'}).then(() => {
     console.log('Connected to DB');
