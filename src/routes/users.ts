@@ -1,17 +1,12 @@
-import express from 'express';
+import express, {Request, Response} from 'express';
 import { User } from '../models/User';
 
 
-const router = express.Router();
+const usersRouter = express.Router();
 
 // Create/register a user
-router.post('/', async(req,res) => {
+usersRouter.post('/', async(req: Request, res: Response) => {
     try {
-        // email: string,
-        // firstName: string,
-        // lastName: string,
-        // password: string,
-        // const data = req.body;
         const newUser = await User.create(req.body);
         res.send(newUser)
     }catch(err){
@@ -20,7 +15,7 @@ router.post('/', async(req,res) => {
 })
 
 // Get all users
-router.get('/', async(_,res) =>{
+usersRouter.get('/', async(_,res) => {
     try {
         const users = await User.find()
         res.send(users)
@@ -29,8 +24,8 @@ router.get('/', async(_,res) =>{
     }
 })
 
-// Get post by userId
-router.get('/:userId', async(req,res) =>{
+// Get user by userId
+usersRouter.get('/:userId', async(req,res) =>{
     try {
         const user = await User.findById(req.params.userId)
         res.send(user)
@@ -40,7 +35,7 @@ router.get('/:userId', async(req,res) =>{
 })
 
 // Update user by userId
-router.patch('/:userId', async(req,res) =>{
+usersRouter.patch('/:userId', async(req,res) =>{
     try {
         const user = await User.updateOne(
             {_id:req.params.userId},
@@ -52,7 +47,7 @@ router.patch('/:userId', async(req,res) =>{
 })
 
 // Delete a user by userId
-router.delete('/:userId',async(req,res)=>{
+usersRouter.delete('/:userId',async(req,res)=>{
     try {
         const deletedUser = await User.deleteOne({_id:req.params.userId})
         res.send(deletedUser)
@@ -61,4 +56,4 @@ router.delete('/:userId',async(req,res)=>{
     }
 })
 
-export { router };
+export { usersRouter };

@@ -20,12 +20,8 @@ export const UserSchema: Schema<IUserDocument, UserModel> = new Schema<IUserDocu
   password: {
     type: String,
     required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  }
+},  { timestamps: true });
 
 // Hash passport on pre save
 UserSchema.pre('save', function(): void {
