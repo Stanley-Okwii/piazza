@@ -3,7 +3,7 @@ import { Comment } from "../models/Comment";
 
 const commentsRouter = express.Router();
 
-// Get comment by comment id
+// Get comment by commentId
 commentsRouter.get(
   "/:commentId",
   async (request: Request, response: Response) => {
@@ -11,13 +11,13 @@ commentsRouter.get(
     try {
       const comment = await Comment.findById(commentId);
       response.status(200).json(comment);
-    } catch (err) {
-      response.status(500).json({ message: err });
+    } catch (error) {
+      response.status(500).json({ message: error });
     }
   }
 );
 
-// Update comment by comment id
+// Update comment by commentId
 commentsRouter.patch(
   "/:commentId",
   async (request: Request, response: Response) => {
@@ -27,8 +27,8 @@ commentsRouter.patch(
         $set: request.body,
       });
       response.status(200).json(user);
-    } catch (err) {
-      response.status(500).json({ message: err });
+    } catch (error) {
+      response.status(500).json({ message: error });
     }
   }
 );
@@ -41,8 +41,8 @@ commentsRouter.delete(
     try {
       const deletedComment = await Comment.findByIdAndDelete(commentId);
       response.status(200).json(deletedComment);
-    } catch (err) {
-      response.status(500).json({ message: err });
+    } catch (error) {
+      response.status(500).json({ message: error });
     }
   }
 );
