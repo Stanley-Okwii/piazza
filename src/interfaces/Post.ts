@@ -1,5 +1,6 @@
 import { Document, Types } from "mongoose";
 
+
 export interface IPost {
   author: Types.ObjectId;
   title: string;
@@ -12,6 +13,7 @@ export interface IPost {
   likes: Array<Types.ObjectId>;
   dislikes: Array<Types.ObjectId>;
   comments: Array<Types.ObjectId>;
+  reactionsCount: number; // Tracks the sum number of likes and dislikes and is used to compute the active post
 };
 
 export interface IPostMethods {
