@@ -1,4 +1,4 @@
-import { Document, Model, model, Schema, Types } from "mongoose";
+import { Model, model, Schema, Types } from "mongoose";
 import { IPost, IPostMethods, IPostDocument } from "../interfaces/Post";
 
 enum Topic {

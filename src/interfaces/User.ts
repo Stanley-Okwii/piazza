@@ -6,6 +6,6 @@ export interface IUser {
   lastName: string;
   password: string;
   createdAt: Date;
-};
+}
 
-export interface IUserDocument extends IUser, Document {};
+export interface IUserDocument extends IUser, Document {}
