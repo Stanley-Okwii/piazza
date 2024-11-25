@@ -1,9 +1,12 @@
-export const createValidation = (
-  validator: Function,
-  requestBody: any,
-  response: any
+import { Response } from "express";
+
+
+export const validateRequest = (
+  validate: Function,
+  requestBody: Object,
+  response: Response
 ) => {
-  const { error } = validator(requestBody);
+  const { error } = validate(requestBody);
   if (error) {
     response.status(400).json({ message: error["details"][0]["message"] });
     return;

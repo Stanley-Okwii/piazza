@@ -3,18 +3,16 @@ import express, { Router, Request, Response } from "express";
 import { Post } from "../models/Post";
 import { Comment } from "../models/Comment";
 import { IPostDocument } from "../interfaces/Post";
-import { validatePost, validatePostID, validateComment } from "../validators";
+import { Post as PostValidator, PostID, Comment as CommentValidator } from "../validators";
+import { validateRequest } from "../utils";
 
 const postsRouter: Router = express.Router();
+
 
 // Create a single post
 postsRouter.post("/", async (request: Request, response: Response) => {
   const userId = "672fabc8307ab120110a5b47";
-  const { error } = validatePost(request.body);
-  if (error) {
-    response.status(400).json({ message: error["details"][0]["message"] });
-    return;
-  }
+  validateRequest(PostValidator, request.body, response);
 
   const { expiresIn } = request.body;
   try {
@@ -33,12 +31,7 @@ postsRouter.post("/", async (request: Request, response: Response) => {
 
 // Get all posts
 postsRouter.get("/", async (request: Request, response: Response) => {
-  const { error } = validatePost(request.body);
-  if (error) {
-    response.status(400).json({ message: error["details"][0]["message"] });
-    return;
-  }
-
+  // TODO: add query param validator
   const { topic, expired, active } = request.query;
   try {
     let filters = {};
@@ -78,11 +71,7 @@ postsRouter.get("/", async (request: Request, response: Response) => {
 
 // Get post by postId,
 postsRouter.get("/:postId", async (request: Request, response: Response) => {
-  const { error } = validatePostID(request.params);
-  if (error) {
-    response.status(400).json({ message: error["details"][0]["message"] });
-    return;
-  }
+  validateRequest(PostID, request.params, response);
 
   const { postId } = request.params;
   try {
@@ -97,11 +86,7 @@ postsRouter.get("/:postId", async (request: Request, response: Response) => {
 
 // Update post by postId
 postsRouter.patch("/:postId", async (request: Request, response: Response) => {
-  const { error } = validatePostID(request.params);
-  if (error) {
-    response.status(400).json({ message: error["details"][0]["message"] });
-    return;
-  }
+  validateRequest(PostID, request.params, response);
   const { postId } = request.params;
   const { body } = request;
   try {
@@ -118,11 +103,7 @@ postsRouter.patch("/:postId", async (request: Request, response: Response) => {
 
 // Delete a post by postId
 postsRouter.delete("/:postId", async (request: Request, response: Response) => {
-  const { error } = validatePostID(request.params);
-  if (error) {
-    response.status(400).json({ message: error["details"][0]["message"] });
-    return;
-  }
+  validateRequest(PostID, request.params, response);
   const { postId } = request.params;
   try {
     const postToDelete: IPostDocument | null = await Post.findByIdAndDelete(
@@ -138,11 +119,7 @@ postsRouter.delete("/:postId", async (request: Request, response: Response) => {
 postsRouter.post(
   "/:postId/like",
   async (request: Request, response: Response) => {
-    const { error } = validatePostID(request.params);
-    if (error) {
-      response.status(400).json({ message: error["details"][0]["message"] });
-      return;
-    }
+    validateRequest(PostID, request.params, response);
     const userId = "672fe3c225e13979680b0fea";
     const { postId } = request.params;
     try {
@@ -186,11 +163,7 @@ postsRouter.post(
 postsRouter.post(
   "/:postId/dislike",
   async (request: Request, response: Response) => {
-    const { error } = validatePostID(request.params);
-    if (error) {
-      response.status(400).json({ message: error["details"][0]["message"] });
-      return;
-    }
+    validateRequest(PostID, request.params, response);
     const { postId } = request.params;
     const userId = "672fe3c225e13979680b0fea";
     try {
@@ -233,18 +206,8 @@ postsRouter.post(
 postsRouter.post(
   "/:postId/comment",
   async (request: Request, response: Response) => {
-    const { error } = validatePostID(request.params);
-    if (error) {
-      response.status(400).json({ message: error["details"][0]["message"] });
-      return;
-    }
-    const { error: commentError } = validateComment(request.body);
-    if (commentError) {
-      response
-        .status(400)
-        .json({ message: commentError["details"][0]["message"] });
-      return;
-    }
+    validateRequest(PostID, request.params, response);
+    validateRequest(CommentValidator, request.body, response);
     const userId = "672fe3c225e13979680b0fea";
     const { postId } = request.params;
     const { content } = request.body;

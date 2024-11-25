@@ -95,14 +95,14 @@ PostSchema.method("isExpired", function isExpired() {
 });
 
 PostSchema.method("isLikedByUser", function isLikedByUser(userId: string) {
-  const likes = this.likes.map((id: Types.ObjectId) => String(id)); // Cast ObjectId to strings because we need compare them
+  const likes = this.likes ? this.likes.map((id: Types.ObjectId) => String(id)) : []; // Cast ObjectId to strings because we need compare them
   return likes.includes(userId);
 });
 
 PostSchema.method(
   "isDislikedByUser",
   function isDislikedByUser(userId: string) {
-    const dislikes = this.dislikes.map((id: Types.ObjectId) => String(id)); // Cast ObjectId to strings because we need compare them
+    const dislikes = this.dislikes ? this.dislikes.map((id: Types.ObjectId) => String(id)) : []; // Cast ObjectId to strings because we need compare them
     return dislikes.includes(userId);
   }
 );
@@ -139,7 +139,7 @@ PostSchema.post("findOne", async function (post: IPostDocument) {
 PostSchema.post("findOneAndUpdate", async function () {
   const post: IPostDocument | null = await this.model.findOne(this.getQuery());
   if (post) {
-    const sumOfReactions: number = post.likes.length + post.dislikes.length;
+    const sumOfReactions: number = (post.likes ? post.likes.length : 0) + (post.dislikes ? post.dislikes.length : 0);
     post.reactionsCount = sumOfReactions;
     await post.save();
   }

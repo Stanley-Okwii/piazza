@@ -1,15 +1,17 @@
 import express, { Request, Response } from "express";
+
 import { Comment } from "../models/Comment";
-import { validateCommentID } from "../validators";
-import { createValidation } from "../utils";
+import { CommentID } from "../validators";
+import { validateRequest } from "../utils";
 
 const commentsRouter = express.Router();
+
 
 // Get comment by commentId
 commentsRouter.get(
   "/:commentId",
   async (request: Request, response: Response) => {
-    createValidation(validateCommentID, request.params, response);
+    validateRequest(CommentID, request.params, response);
     const { commentId } = request.params;
   
     try {
@@ -25,7 +27,7 @@ commentsRouter.get(
 commentsRouter.patch(
   "/:commentId",
   async (request: Request, response: Response) => {
-    createValidation(validateCommentID, request.params, response);
+    validateRequest(CommentID, request.params, response);
     const { commentId } = request.params;
 
     try {
@@ -39,11 +41,11 @@ commentsRouter.patch(
   }
 );
 
-// Delete a comment by id
+// Delete a comment by commentId
 commentsRouter.delete(
   "/:commentId",
   async (request: Request, response: Response) => {
-    createValidation(validateCommentID, request.params, response);
+    validateRequest(CommentID, request.params, response);
     const { commentId } = request.params;
 
     try {

@@ -1,9 +1,9 @@
 import { string, object, array, number }  from 'joi';
-import {IUser} from '../interfaces/User';
-import {IPost} from '../interfaces/Post';
+import { IUser } from '../interfaces/User';
+import { IPost } from '../interfaces/Post';
 
 
-export const validateUser = (data: IUser) => {
+export const User = (data: IUser) => {
     const schemaValidation = object({
         email: string().required().min(6).max(100).email(),
         firstName: string().required().min(6).max(100),
@@ -13,14 +13,14 @@ export const validateUser = (data: IUser) => {
     return schemaValidation.validate(data)
 }
 
-export const validateUserID= (data: any) => {
+export const UserID= (data: any) => {
     const schemaValidation = object({
         userId: string().required().min(6).max(100),
     })
     return schemaValidation.validate(data)
 }
 
-export const validatePost = (data: IPost) => {
+export const Post = (data: IPost) => {
     const schemaValidation = object({
         author: string().required().min(6).max(100).email(),
         title: string().required().min(6).max(150),
@@ -31,21 +31,21 @@ export const validatePost = (data: IPost) => {
     return schemaValidation.validate(data)
 }
 
-export const validatePostID = (data: any) => {
+export const PostID = (data: any) => {
     const schemaValidation = object({
         postId: string().required().min(6).max(100)
     })
     return schemaValidation.validate(data)
 }
 
-export const validateComment = (data: any) => {
+export const Comment = (data: any) => {
     const schemaValidation = object({
         content: string().required().min(6).max(256)
     })
     return schemaValidation.validate(data)
 }
 
-export const validateCommentID = (data: any) => {
+export const CommentID = (data: any) => {
     const schemaValidation = object({
         commentId: string().required().min(6).max(100)
     })

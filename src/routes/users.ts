@@ -1,17 +1,16 @@
 import express, { Request, Response } from "express";
+
 import { User } from "../models/User";
 import { IUser } from "../interfaces/User";
-import { validateUser, validateUserID } from "../validators";
+import { User as UserValidator, UserID } from "../validators";
+import { validateRequest } from "../utils";
 
 const usersRouter = express.Router();
 
+
 // Create/register a user
 usersRouter.post("/", async (request: Request, response: Response) => {
-  const { error } = validateUser(request.body);
-  if (error) {
-    response.status(400).json({ message: error["details"][0]["message"] });
-    return;
-  }
+  validateRequest(UserValidator, request.body, response);
 
   try {
     const newUser: IUser = await User.create(request.body);
@@ -33,12 +32,8 @@ usersRouter.get("/", async (_, response: Response) => {
 
 // Get user by userId
 usersRouter.get("/:userId", async (request: Request, response: Response) => {
+  validateRequest(UserID, request.body, response);
   const { userId } = request.params;
-  const { error } = validateUserID(request.params);
-  if (error) {
-    response.status(400).json({ message: error["details"][0]["message"] });
-    return;
-  }
   try {
     const user: IUser | null = await User.findById(userId);
     response.status(200).json(user);
@@ -49,12 +44,9 @@ usersRouter.get("/:userId", async (request: Request, response: Response) => {
 
 // Update user by userId
 usersRouter.patch("/:userId", async (request: Request, response: Response) => {
+  validateRequest(UserID, request.params, response);
   const { userId } = request.params;
-  const { error } = validateUserID(request.params);
-  if (error) {
-    response.status(400).json({ message: error["details"][0]["message"] });
-    return;
-  }
+
   try {
     const user = await User.findByIdAndUpdate(userId, { $set: request.body });
     response.status(200).json(user);
@@ -65,12 +57,9 @@ usersRouter.patch("/:userId", async (request: Request, response: Response) => {
 
 // Delete a user by userId
 usersRouter.delete("/:userId", async (request: Request, response: Response) => {
+  validateRequest(UserID, request.params, response);
   const { userId } = request.params;
-  const { error } = validateUserID(request.params);
-  if (error) {
-    response.status(400).json({ message: error["details"][0]["message"] });
-    return;
-  }
+
   try {
     const deletedUser = await User.findByIdAndDelete(userId);
     response.status(200).json(deletedUser);
