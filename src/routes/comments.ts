@@ -1,5 +1,7 @@
 import express, { Request, Response } from "express";
 import { Comment } from "../models/Comment";
+import { validateCommentID } from "../validators";
+import { createValidation } from "../utils";
 
 const commentsRouter = express.Router();
 
@@ -7,7 +9,9 @@ const commentsRouter = express.Router();
 commentsRouter.get(
   "/:commentId",
   async (request: Request, response: Response) => {
+    createValidation(validateCommentID, request.params, response);
     const { commentId } = request.params;
+  
     try {
       const comment = await Comment.findById(commentId);
       response.status(200).json(comment);
@@ -21,7 +25,9 @@ commentsRouter.get(
 commentsRouter.patch(
   "/:commentId",
   async (request: Request, response: Response) => {
+    createValidation(validateCommentID, request.params, response);
     const { commentId } = request.params;
+
     try {
       const user = await Comment.findByIdAndUpdate(commentId, {
         $set: request.body,
@@ -37,7 +43,9 @@ commentsRouter.patch(
 commentsRouter.delete(
   "/:commentId",
   async (request: Request, response: Response) => {
+    createValidation(validateCommentID, request.params, response);
     const { commentId } = request.params;
+
     try {
       const deletedComment = await Comment.findByIdAndDelete(commentId);
       response.status(200).json(deletedComment);

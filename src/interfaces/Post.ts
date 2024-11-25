@@ -7,12 +7,10 @@ export interface IPost {
   topics: Array<{ name: string }>;
   status: string;
   expiresAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  likes: Array<Types.ObjectId>;
-  dislikes: Array<Types.ObjectId>;
-  comments: Array<Types.ObjectId>;
-  reactionsCount: number; // Tracks the sum number of likes and dislikes and is used to compute the active post
+  likes?: Array<Types.ObjectId>;
+  dislikes?: Array<Types.ObjectId>;
+  comments?: Array<Types.ObjectId>;
+  reactionsCount?: number; // Tracks the sum number of likes and dislikes and is used to compute the active post
 }
 
 export interface IPostMethods {

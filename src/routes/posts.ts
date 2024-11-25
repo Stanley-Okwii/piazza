@@ -2,13 +2,21 @@ import express, { Router, Request, Response } from "express";
 
 import { Post } from "../models/Post";
 import { Comment } from "../models/Comment";
+import { IPostDocument } from "../interfaces/Post";
+import { validatePost, validatePostID, validateComment } from "../validators";
 
 const postsRouter: Router = express.Router();
 
 // Create a single post
 postsRouter.post("/", async (request: Request, response: Response) => {
-  const { expiresIn } = request.body;
   const userId = "672fabc8307ab120110a5b47";
+  const { error } = validatePost(request.body);
+  if (error) {
+    response.status(400).json({ message: error["details"][0]["message"] });
+    return;
+  }
+
+  const { expiresIn } = request.body;
   try {
     // Calculate the expiration date
     const expiresAt = new Date(Date.now() + expiresIn * 60 * 1000);
@@ -19,12 +27,18 @@ postsRouter.post("/", async (request: Request, response: Response) => {
     });
     response.status(201).json(newPost);
   } catch (err) {
-    response.send({ message: err });
+    response.status(500).json({ message: err });
   }
 });
 
 // Get all posts
 postsRouter.get("/", async (request: Request, response: Response) => {
+  const { error } = validatePost(request.body);
+  if (error) {
+    response.status(400).json({ message: error["details"][0]["message"] });
+    return;
+  }
+
   const { topic, expired, active } = request.query;
   try {
     let filters = {};
@@ -45,51 +59,58 @@ postsRouter.get("/", async (request: Request, response: Response) => {
       // Assume: Only one topics posts can seen at time..
       const currentTime = new Date();
       filters = { expiresAt: { $gt: currentTime }, ...filters };
-      const allPosts = await Post.find(filters)
+      const posts = await Post.find(filters)
         .populate("author", "email firstName lastName")
         .populate("comments", "content")
-        .sort({ reactionCount: -1 })
+        .sort({ reactionsCount: -1 })
         .limit(1);
-      response.status(200).json(allPosts);
+      response.status(200).json(posts);
       return;
     }
     const allPosts = await Post.find(filters)
       .populate("author", "email firstName lastName")
       .populate("comments", "content");
     response.status(200).json(allPosts);
-  } catch (err) {
-    response.send({ message: err });
+  } catch (error) {
+    response.send({ message: error });
   }
 });
 
 // Get post by postId,
 postsRouter.get("/:postId", async (request: Request, response: Response) => {
+  const { error } = validatePostID(request.params);
+  if (error) {
+    response.status(400).json({ message: error["details"][0]["message"] });
+    return;
+  }
+
   const { postId } = request.params;
   try {
-    const getPostById = await Post.findById(postId)
+    const post: IPostDocument | null = await Post.findById(postId)
       .populate("author", "email firstName lastName")
       .populate("comments", "content");
-    response.status(200).json(getPostById);
-  } catch (err) {
-    response.send({ message: err });
+    response.status(200).json(post);
+  } catch (error) {
+    response.send({ message: error });
   }
 });
 
 // Update post by postId
 postsRouter.patch("/:postId", async (request: Request, response: Response) => {
+  const { error } = validatePostID(request.params);
+  if (error) {
+    response.status(400).json({ message: error["details"][0]["message"] });
+    return;
+  }
   const { postId } = request.params;
+  const { body } = request;
   try {
-    const updatePostById = await Post.findByIdAndUpdate(postId, {
+    const post: IPostDocument | null = await Post.findByIdAndUpdate(postId, {
       $set: {
-        author: request.body.user,
-        title: request.body.title,
-        text: request.body.text,
-        hashtag: request.body.hashtag,
-        location: request.body.location,
-        url: request.body.url,
+        ...body,
       },
     });
-    response.send(updatePostById);
+    response.send(post);
   } catch (err) {
     response.send({ message: err });
   }
@@ -97,9 +118,16 @@ postsRouter.patch("/:postId", async (request: Request, response: Response) => {
 
 // Delete a post by postId
 postsRouter.delete("/:postId", async (request: Request, response: Response) => {
+  const { error } = validatePostID(request.params);
+  if (error) {
+    response.status(400).json({ message: error["details"][0]["message"] });
+    return;
+  }
   const { postId } = request.params;
   try {
-    const postToDelete = await Post.deleteOne({ _id: postId });
+    const postToDelete: IPostDocument | null = await Post.findByIdAndDelete(
+      postId
+    );
     response.send(postToDelete);
   } catch (err) {
     response.send({ message: err });
@@ -110,10 +138,15 @@ postsRouter.delete("/:postId", async (request: Request, response: Response) => {
 postsRouter.post(
   "/:postId/like",
   async (request: Request, response: Response) => {
+    const { error } = validatePostID(request.params);
+    if (error) {
+      response.status(400).json({ message: error["details"][0]["message"] });
+      return;
+    }
     const userId = "672fe3c225e13979680b0fea";
     const { postId } = request.params;
     try {
-      const post = await Post.findById({ _id: postId });
+      const post = await Post.findById(postId);
       if (post) {
         if (post.isExpired()) {
           response
@@ -153,10 +186,15 @@ postsRouter.post(
 postsRouter.post(
   "/:postId/dislike",
   async (request: Request, response: Response) => {
+    const { error } = validatePostID(request.params);
+    if (error) {
+      response.status(400).json({ message: error["details"][0]["message"] });
+      return;
+    }
     const { postId } = request.params;
     const userId = "672fe3c225e13979680b0fea";
     try {
-      const post = await Post.findById({ _id: postId });
+      const post = await Post.findById(postId);
       if (post) {
         if (post.isExpired()) {
           response
@@ -174,15 +212,14 @@ postsRouter.post(
             .json({ message: "You have already disliked this Post" });
         } else {
           if (post.isLikedByUser(userId)) {
-            await Post.findByIdAndUpdate(request.params.postId, {
+            await Post.findByIdAndUpdate(postId, {
               $pull: { likes: userId },
             });
           }
-          await Post.findByIdAndUpdate(request.params.postId, {
+          await Post.findByIdAndUpdate(postId, {
             $addToSet: { dislikes: userId },
           });
 
-          // TODO:  Remove like is a user has disliked as post that they previous liked...
           response.status(200).json({ message: "Successfully disliked post" });
         }
       }
@@ -196,6 +233,18 @@ postsRouter.post(
 postsRouter.post(
   "/:postId/comment",
   async (request: Request, response: Response) => {
+    const { error } = validatePostID(request.params);
+    if (error) {
+      response.status(400).json({ message: error["details"][0]["message"] });
+      return;
+    }
+    const { error: commentError } = validateComment(request.body);
+    if (commentError) {
+      response
+        .status(400)
+        .json({ message: commentError["details"][0]["message"] });
+      return;
+    }
     const userId = "672fe3c225e13979680b0fea";
     const { postId } = request.params;
     const { content } = request.body;
