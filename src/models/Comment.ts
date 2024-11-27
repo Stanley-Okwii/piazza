@@ -18,7 +18,9 @@ export const CommentSchema: Schema<ICommentDocument, CommentModel> = new Schema<
       required: true,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true, // Adds createdAt and modifiedAt fields to Schema
+  }
 );
 
 export const Comment = model<ICommentDocument>("Comment", CommentSchema);

@@ -1,17 +1,8 @@
 import { Model, model, Schema, Types } from "mongoose";
+
 import { IPost, IPostMethods, IPostDocument } from "../interfaces";
-
-enum Topic {
-  POLITICS = "Politics",
-  HEALTH = "Health",
-  SPORTS = "Sports",
-  TECH = "Tech",
-}
-
-enum Status {
-  Live = "Live",
-  Expired = "Expired",
-}
+import { setExpirationStatus, isLikedOrDislikedByUser } from "../utils";
+import { Topic, Status } from "../utils/enums";
 
 // Create PostModel type that's aware of PostMethods
 type PostModel = Model<IPost, {}, IPostMethods>;
@@ -75,9 +66,9 @@ export const PostSchema: Schema<IPostDocument, PostModel> = new Schema<
     },
   },
   {
-    timestamps: true,
+    timestamps: true, // Adds createdAt and modifiedAt fields to Schema
     toJSON: {
-      // Override the response of likes and dislikes to return a count instead of a list of IDs
+      // Override the API response of likes and dislikes to return a count instead of a list of IDs
       transform: function (_, record) {
         record.likes = record.likes.length;
         record.dislikes = record.dislikes.length;
@@ -87,37 +78,32 @@ export const PostSchema: Schema<IPostDocument, PostModel> = new Schema<
   }
 );
 // TODO: add virtual attributes for like count and dislike count and reactions count
-// timestamps adds createdAt and modifiedAt attributes to the model
 
-PostSchema.method("isExpired", function isExpired() {
-  const currentTime = new Date();
+
+// SCHEMA Functions
+// Define function that returns a whether a post is expired or not
+PostSchema.method("isExpired", function isExpired(): boolean {
+  const currentTime: Date = new Date();
   return currentTime > this.expiresAt;
 });
 
-PostSchema.method("isLikedByUser", function isLikedByUser(userId: string) {
-  const likes = this.likes ? this.likes.map((id: Types.ObjectId) => String(id)) : []; // Cast ObjectId to strings because we need compare them
-  return likes.includes(userId);
-});
+// Define function that returns a whether a post is liked by a given user or not
+PostSchema.method(
+  "isLikedByUser",
+  function(userId):boolean {return isLikedOrDislikedByUser(userId, this.likes)},
+);
 
+// Define function that returns a whether a post is disliked by a given user or not
 PostSchema.method(
   "isDislikedByUser",
-  function isDislikedByUser(userId: string) {
-    const dislikes = this.dislikes ? this.dislikes.map((id: Types.ObjectId) => String(id)) : []; // Cast ObjectId to strings because we need compare them
-    return dislikes.includes(userId);
+  function(userId: string): boolean {
+    return isLikedOrDislikedByUser(userId, this.dislikes);
   }
 );
 
-// Schema Middleware
-// Function to check and update `status` on individual documents after a query
-async function setExpirationStatus(post: IPostDocument) {
-  if (post.isExpired() && post.status !== Status.Expired) {
-    post.status = Status.Expired;
-    await post.save();
-  }
-}
-
-// Apply middleware after `find` to each document in the result set
-PostSchema.post("find", async function (posts: Array<IPostDocument>) {
+// SCHEMA MIDDLEWARE
+// Apply middleware after the `find` query to each document in the result set
+PostSchema.post("find", async function (posts: Array<IPostDocument>): Promise<void> {
   const livePosts: Array<IPostDocument> = posts.filter(
     (post) => post.status !== "Expired"
   );
@@ -128,18 +114,21 @@ PostSchema.post("find", async function (posts: Array<IPostDocument>) {
   }
 });
 
-// Apply middleware after `findOne` to a single document
-PostSchema.post("findOne", async function (post: IPostDocument) {
+// Apply middleware after  the`findOne` query to a single document
+PostSchema.post("findOne", async function (post: IPostDocument): Promise<void> {
   if (post && post.status && post.status === Status.Live) {
     setExpirationStatus(post);
   }
 });
 
-// Sum update dislike and likes to ensure active post is easily computed
-PostSchema.post("findOneAndUpdate", async function () {
+// Apply middleware to after `findOneAndUpdate` query to compute dislike and likes
+// to ensure active post is easily computed based on reactionsCount
+PostSchema.post("findOneAndUpdate", async function (): Promise<void> {
   const post: IPostDocument | null = await this.model.findOne(this.getQuery());
   if (post) {
-    const sumOfReactions: number = (post.likes ? post.likes.length : 0) + (post.dislikes ? post.dislikes.length : 0);
+    const sumOfReactions: number =
+      (post.likes ? post.likes.length : 0) +
+      (post.dislikes ? post.dislikes.length : 0);
     post.reactionsCount = sumOfReactions;
     await post.save();
   }

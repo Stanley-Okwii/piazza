@@ -29,9 +29,13 @@ export const UserSchema: Schema<IUserDocument, UserModel> = new Schema<IUserDocu
     type: String,
     required: true,
   }
-},  { timestamps: true });
+},
+{
+  timestamps: true // Adds createdAt and modifiedAt fields to Schema
+}
+);
 
-// Hash passport on pre save
+// Hash passport on pre save of a User object
 UserSchema.pre('save', async function() {
   const salt = await genSalt(5);
   const hashedPassword = await hash(this.password, salt);
