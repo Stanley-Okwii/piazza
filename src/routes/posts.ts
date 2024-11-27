@@ -1,19 +1,14 @@
 import express, { Router, Request, Response } from "express";
-import { JwtPayload } from "jsonwebtoken";
+
 
 import { Post } from "../models/Post";
 import { Comment } from "../models/Comment";
-import { IPostDocument } from "../interfaces/Post";
+import { IPostDocument } from "../interfaces";
 import { Post as PostValidator, PostID, Comment as CommentValidator } from "../validators";
 import { validateRequest,  verifyAuth } from "../utils";
 
+
 const postsRouter: Router = express.Router();
-
-
-// export interface AuthenticatedRequest extends Request {
-//   user: JwtPayload | string
-// }
-
 
 // Create a single post
 postsRouter.post("/",  verifyAuth, async (request: Request, response: Response) => {

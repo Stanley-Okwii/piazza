@@ -1,7 +1,6 @@
 import Joi from 'joi';
 
-import { IUser } from '../interfaces/User';
-import { IPost } from '../interfaces/Post';
+import { IUser, IPost } from '../interfaces';
 
 
 export const User = (data: IUser) => {

@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 
 import { User } from "../models/User";
-import { IUser } from "../interfaces/User";
+import { IUser } from "../interfaces";
 import { User as UserValidator, UserID } from "../validators";
 import { validateRequest, verifyAuth } from "../utils";
 

@@ -1,5 +1,5 @@
 import { Model, model, Schema } from "mongoose";
-import { IComment, ICommentDocument } from "../interfaces/Comment";
+import { IComment, ICommentDocument } from "../interfaces";
 
 type CommentModel = Model<IComment, {}, {}>;
 

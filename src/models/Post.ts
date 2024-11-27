@@ -1,5 +1,5 @@
 import { Model, model, Schema, Types } from "mongoose";
-import { IPost, IPostMethods, IPostDocument } from "../interfaces/Post";
+import { IPost, IPostMethods, IPostDocument } from "../interfaces";
 
 enum Topic {
   POLITICS = "Politics",

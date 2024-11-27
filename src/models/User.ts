@@ -1,7 +1,7 @@
 import { Model, model, Schema } from "mongoose";
 import { genSalt, hash } from "bcryptjs";
 
-import { IUser, IUserDocument } from "../interfaces/User";
+import { IUser, IUserDocument } from "../interfaces";
 
 type UserModel = Model<IUser, {}, {}>
 
