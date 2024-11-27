@@ -1,8 +1,6 @@
 import express, { Router, Request, Response } from "express";
 
-
-import { Post } from "../models/Post";
-import { Comment } from "../models/Comment";
+import { Post, Comment } from "../models";
 import { IPostDocument } from "../interfaces";
 import { Post as PostValidator, PostID, Comment as CommentValidator } from "../validators";
 import { validateRequest,  verifyAuth } from "../utils";

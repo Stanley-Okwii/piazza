@@ -3,7 +3,7 @@ import {compare} from "bcryptjs";
 import { sign } from  "jsonwebtoken";
 import { env } from 'node:process';
 
-import { User } from "../models/User";
+import { User } from "../models";
 import { UserLogin } from "../validators";
 import { validateRequest } from "../utils";
 

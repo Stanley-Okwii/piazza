@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 
-import { Comment } from "../models/Comment";
+import { Comment } from "../models";
 import { CommentID } from "../validators";
 import { validateRequest, verifyAuth } from "../utils";
 
