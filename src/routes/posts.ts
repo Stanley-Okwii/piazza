@@ -1,20 +1,26 @@
 import express, { Router, Request, Response } from "express";
+import { JwtPayload } from "jsonwebtoken";
 
 import { Post } from "../models/Post";
 import { Comment } from "../models/Comment";
 import { IPostDocument } from "../interfaces/Post";
 import { Post as PostValidator, PostID, Comment as CommentValidator } from "../validators";
-import { validateRequest } from "../utils";
+import { validateRequest,  verifyAuth } from "../utils";
 
 const postsRouter: Router = express.Router();
 
 
-// Create a single post
-postsRouter.post("/", async (request: Request, response: Response) => {
-  const userId = "672fabc8307ab120110a5b47";
-  validateRequest(PostValidator, request.body, response);
+// export interface AuthenticatedRequest extends Request {
+//   user: JwtPayload | string
+// }
 
+
+// Create a single post
+postsRouter.post("/",  verifyAuth, async (request: Request, response: Response) => {
+  validateRequest(PostValidator, request.body, response);
+  const userId = (request as any).user._id;
   const { expiresIn } = request.body;
+
   try {
     // Calculate the expiration date
     const expiresAt = new Date(Date.now() + expiresIn * 60 * 1000);
@@ -30,7 +36,7 @@ postsRouter.post("/", async (request: Request, response: Response) => {
 });
 
 // Get all posts
-postsRouter.get("/", async (request: Request, response: Response) => {
+postsRouter.get("/", verifyAuth,  async (request: Request, response: Response) => {
   // TODO: add query param validator
   const { topic, expired, active } = request.query;
   try {
@@ -70,7 +76,7 @@ postsRouter.get("/", async (request: Request, response: Response) => {
 });
 
 // Get post by postId,
-postsRouter.get("/:postId", async (request: Request, response: Response) => {
+postsRouter.get("/:postId", verifyAuth,  async (request: Request, response: Response) => {
   validateRequest(PostID, request.params, response);
 
   const { postId } = request.params;
@@ -85,10 +91,11 @@ postsRouter.get("/:postId", async (request: Request, response: Response) => {
 });
 
 // Update post by postId
-postsRouter.patch("/:postId", async (request: Request, response: Response) => {
+postsRouter.patch("/:postId", verifyAuth,  async (request: Request, response: Response) => {
   validateRequest(PostID, request.params, response);
   const { postId } = request.params;
   const { body } = request;
+
   try {
     const post: IPostDocument | null = await Post.findByIdAndUpdate(postId, {
       $set: {
@@ -102,7 +109,7 @@ postsRouter.patch("/:postId", async (request: Request, response: Response) => {
 });
 
 // Delete a post by postId
-postsRouter.delete("/:postId", async (request: Request, response: Response) => {
+postsRouter.delete("/:postId", verifyAuth,  async (request: Request, response: Response) => {
   validateRequest(PostID, request.params, response);
   const { postId } = request.params;
   try {
@@ -117,11 +124,12 @@ postsRouter.delete("/:postId", async (request: Request, response: Response) => {
 
 // Like a post
 postsRouter.post(
-  "/:postId/like",
+  "/:postId/like", verifyAuth,
   async (request: Request, response: Response) => {
     validateRequest(PostID, request.params, response);
-    const userId = "672fe3c225e13979680b0fea";
+    const userId: string = response.getHeader('userId') as string; // Cast userId to string since we expect a string back
     const { postId } = request.params;
+
     try {
       const post = await Post.findById(postId);
       if (post) {
@@ -153,19 +161,20 @@ postsRouter.post(
           response.status(200).json({ message: "Successfully liked post" });
         }
       }
-    } catch (err) {
-      response.send({ message: err });
+    } catch (error) {
+      response.send({ message: error });
     }
   }
 );
 
 // Dislike a post
 postsRouter.post(
-  "/:postId/dislike",
+  "/:postId/dislike", verifyAuth, 
   async (request: Request, response: Response) => {
     validateRequest(PostID, request.params, response);
+    const userId: string = response.getHeader('userId') as string; // Cast userId to string since we expect a string back
     const { postId } = request.params;
-    const userId = "672fe3c225e13979680b0fea";
+
     try {
       const post = await Post.findById(postId);
       if (post) {
@@ -196,22 +205,23 @@ postsRouter.post(
           response.status(200).json({ message: "Successfully disliked post" });
         }
       }
-    } catch (err) {
-      response.send({ message: err });
+    } catch (error) {
+      response.send({ message: error });
     }
   }
 );
 
 // Comment on a post
 postsRouter.post(
-  "/:postId/comment",
+  "/:postId/comment", verifyAuth, 
   async (request: Request, response: Response) => {
     validateRequest(PostID, request.params, response);
     validateRequest(CommentValidator, request.body, response);
-    const userId = "672fe3c225e13979680b0fea";
+    const userId: string = response.getHeader('userId') as string; // Cast userId to string since we expect a string back
     const { postId } = request.params;
     const { content } = request.body;
     const post = await Post.findById(postId);
+
     if (!post) {
       response
         .status(400)

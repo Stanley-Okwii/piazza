@@ -2,14 +2,14 @@ import express, { Request, Response } from "express";
 
 import { Comment } from "../models/Comment";
 import { CommentID } from "../validators";
-import { validateRequest } from "../utils";
+import { validateRequest, verifyAuth } from "../utils";
 
 const commentsRouter = express.Router();
 
 
 // Get comment by commentId
 commentsRouter.get(
-  "/:commentId",
+  "/:commentId", verifyAuth,
   async (request: Request, response: Response) => {
     validateRequest(CommentID, request.params, response);
     const { commentId } = request.params;
@@ -25,7 +25,7 @@ commentsRouter.get(
 
 // Update comment by commentId
 commentsRouter.patch(
-  "/:commentId",
+  "/:commentId", verifyAuth,
   async (request: Request, response: Response) => {
     validateRequest(CommentID, request.params, response);
     const { commentId } = request.params;
@@ -43,7 +43,7 @@ commentsRouter.patch(
 
 // Delete a comment by commentId
 commentsRouter.delete(
-  "/:commentId",
+  "/:commentId", verifyAuth,
   async (request: Request, response: Response) => {
     validateRequest(CommentID, request.params, response);
     const { commentId } = request.params;

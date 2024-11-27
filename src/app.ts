@@ -7,6 +7,8 @@ import dotenv from 'dotenv';
 
 import { postsRouter } from './routes/posts';
 import { usersRouter } from './routes/users';
+import { authRouter } from './routes/auth';
+import { commentsRouter } from './routes/comments';
 
 dotenv.config();
 
@@ -16,8 +18,10 @@ const app = express();
 app.set('query parser', (str: any) => parse(str, { /* custom options */ }));
 
 app.use(bodyParser.json());
-app.use('/api/posts', postsRouter);
+app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/posts', postsRouter);
+app.use('/api/comments', commentsRouter);
 
 // app.use('/api/users', userRoute);
 

@@ -3,7 +3,7 @@ import express, { Request, Response } from "express";
 import { User } from "../models/User";
 import { IUser } from "../interfaces/User";
 import { User as UserValidator, UserID } from "../validators";
-import { validateRequest } from "../utils";
+import { validateRequest, verifyAuth } from "../utils";
 
 const usersRouter = express.Router();
 
@@ -21,7 +21,7 @@ usersRouter.post("/", async (request: Request, response: Response) => {
 });
 
 // Get all users
-usersRouter.get("/", async (_, response: Response) => {
+usersRouter.get("/", verifyAuth,  async (_, response: Response) => {
   try {
     const users: Array<IUser> = await User.find();
     response.status(200).json(users);
@@ -31,9 +31,10 @@ usersRouter.get("/", async (_, response: Response) => {
 });
 
 // Get user by userId
-usersRouter.get("/:userId", async (request: Request, response: Response) => {
-  validateRequest(UserID, request.body, response);
+usersRouter.get("/:userId", verifyAuth,  async (request: Request, response: Response) => {
+  validateRequest(UserID, request.params, response);
   const { userId } = request.params;
+
   try {
     const user: IUser | null = await User.findById(userId);
     response.status(200).json(user);
@@ -43,7 +44,7 @@ usersRouter.get("/:userId", async (request: Request, response: Response) => {
 });
 
 // Update user by userId
-usersRouter.patch("/:userId", async (request: Request, response: Response) => {
+usersRouter.patch("/:userId",verifyAuth,  async (request: Request, response: Response) => {
   validateRequest(UserID, request.params, response);
   const { userId } = request.params;
 
@@ -56,7 +57,7 @@ usersRouter.patch("/:userId", async (request: Request, response: Response) => {
 });
 
 // Delete a user by userId
-usersRouter.delete("/:userId", async (request: Request, response: Response) => {
+usersRouter.delete("/:userId", verifyAuth,  async (request: Request, response: Response) => {
   validateRequest(UserID, request.params, response);
   const { userId } = request.params;
 
