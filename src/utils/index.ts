@@ -28,31 +28,32 @@ export const isLikedOrDislikedByUser = (
 // Util function to validate request parameters
 export const validateRequest = (
   validate: Function,
-  requestBody: Object,
-  response: Response
-): void => {
+  requestBody: Object
+) => {
   const { error } = validate(requestBody);
   if (error) {
-    response.status(400).json({ message: error["details"][0]["message"] });
-    return;
+    throw error["details"][0]["message"];
   }
 };
 
 export const verifyAuth = (
   request: Request,
-  response: any,
+  response: Response,
   next: NextFunction
-): void => {
-  const token: string | undefined = request.header("Auth-Token");
+) => {
+  const token: string | undefined = request.header("auth-token");
   if (!token) {
-    return response.status(401).send({ message: "No token provided" });
+    response.status(401).send({ message: "No token provided" });
+    return;
   }
   try {
     const payload: JwtPayload | String = verify(token, `${env.TOKEN_SECRET}`);
     const userId: string = (payload as UserJwtPayload)._id;
-    response.set("userId", userId); // Set userId to response headers which is later used to identify and logged in user
+    // Set user-id to request headers which is later used to identify a logged in user
+    request.headers["user-id"] = userId;
     next();
   } catch (error) {
-    return response.status(401).send({ message: "Invalid token" });
+    response.status(401).json({ message: "Invalid token" });
+    return;
   }
 };

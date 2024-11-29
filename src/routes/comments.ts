@@ -11,10 +11,10 @@ commentsRouter.get(
   "/:commentId",
   verifyAuth,
   async (request: Request, response: Response) => {
-    validateRequest(CommentID, request.params, response);
     const { commentId } = request.params;
 
     try {
+      validateRequest(CommentID, request.params);
       const comment = await Comment.findById(commentId);
       response.status(200).json(comment);
     } catch (error) {
@@ -28,10 +28,10 @@ commentsRouter.patch(
   "/:commentId",
   verifyAuth,
   async (request: Request, response: Response) => {
-    validateRequest(CommentID, request.params, response);
     const { commentId } = request.params;
 
     try {
+      validateRequest(CommentID, request.params);
       const user = await Comment.findByIdAndUpdate(commentId, {
         $set: request.body,
       });
@@ -47,10 +47,10 @@ commentsRouter.delete(
   "/:commentId",
   verifyAuth,
   async (request: Request, response: Response) => {
-    validateRequest(CommentID, request.params, response);
     const { commentId } = request.params;
 
     try {
+      validateRequest(CommentID, request.params);
       const deletedComment = await Comment.findByIdAndDelete(commentId);
       response.status(200).json(deletedComment);
     } catch (error) {

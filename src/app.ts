@@ -15,6 +15,7 @@ const app = express();
 app.set("query parser", (str: any) => parse(str, {}));
 
 app.use(bodyParser.json());
+
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/posts", postsRouter);

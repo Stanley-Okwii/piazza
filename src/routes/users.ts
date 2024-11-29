@@ -9,9 +9,8 @@ const usersRouter = express.Router();
 
 // Create/register a user
 usersRouter.post("/", async (request: Request, response: Response) => {
-  validateRequest(UserValidator, request.body, response);
-
   try {
+    validateRequest(UserValidator, request.body);
     const newUser: IUser = await User.create(request.body);
     response.status(201).json(newUser);
   } catch (error) {
@@ -34,10 +33,10 @@ usersRouter.get(
   "/:userId",
   verifyAuth,
   async (request: Request, response: Response) => {
-    validateRequest(UserID, request.params, response);
     const { userId } = request.params;
 
     try {
+      validateRequest(UserID, request.params);
       const user: IUser | null = await User.findById(userId);
       response.status(200).json(user);
     } catch (err) {
@@ -51,10 +50,10 @@ usersRouter.patch(
   "/:userId",
   verifyAuth,
   async (request: Request, response: Response) => {
-    validateRequest(UserID, request.params, response);
     const { userId } = request.params;
 
     try {
+      validateRequest(UserID, request.params);
       const user = await User.findByIdAndUpdate(userId, { $set: request.body });
       response.status(200).json(user);
     } catch (err) {
@@ -68,10 +67,10 @@ usersRouter.delete(
   "/:userId",
   verifyAuth,
   async (request: Request, response: Response) => {
-    validateRequest(UserID, request.params, response);
     const { userId } = request.params;
 
     try {
+      validateRequest(UserID, request.params);
       const deletedUser = await User.findByIdAndDelete(userId);
       response.status(200).json(deletedUser);
     } catch (err) {

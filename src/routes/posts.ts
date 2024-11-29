@@ -5,6 +5,7 @@ import { IPostDocument } from "../interfaces";
 import {
   Post as PostValidator,
   PostID,
+  PostSearchParams,
   Comment as CommentValidator,
 } from "../validators";
 import { validateRequest, verifyAuth } from "../utils";
@@ -16,11 +17,10 @@ postsRouter.post(
   "/",
   verifyAuth,
   async (request: Request, response: Response) => {
-    validateRequest(PostValidator, request.body, response);
-    const userId: string = response.getHeader("userId") as string; // Cast userId to string since we expect a string back
-    const { expiresIn } = request.body;
-
     try {
+      validateRequest(PostValidator, request.body);
+      const userId: string = request.headers["user-id"] as string; // Cast userId to string since we expect a string
+      const { expiresIn } = request.body;
       // Calculate the expiration date based on expiresIn value
       const expiresAt = new Date(Date.now() + expiresIn * 60 * 1000);
       const newPost = await Post.create({
@@ -28,6 +28,7 @@ postsRouter.post(
         expiresAt,
         ...request.body,
       });
+
       response.status(201).json(newPost);
     } catch (error) {
       response.status(500).json({ message: error });
@@ -40,18 +41,17 @@ postsRouter.get(
   "/",
   verifyAuth,
   async (request: Request, response: Response) => {
-    // TODO: add query param validator
-    console.log('query is ', request.query);
     const { topic, expired, active } = request.query;
     let filters = {};
 
     try {
-      if (topic && typeof topic === "string") {
-        // Assumption: Only one topics posts can seen at time..
+      validateRequest(PostSearchParams, request.query);
+      if (topic) {
+        // Assumption: A user can only search for a single post of a single topic at a time
         filters = { topics: [topic] };
       }
 
-      if (expired && typeof expired === "string") {
+      if (expired) {
         // Assumption: Only one topics posts can seen at time..
         const currentTime = new Date();
         if (expired === "true") {
@@ -61,8 +61,8 @@ postsRouter.get(
         }
       }
 
-      if (active && typeof active === "string") {
-        // Assumption: Only one topic's posts can seen at time
+      if (active) {
+        // Assumption: Active filter can not be used with expired filter
         const currentTime = new Date();
         filters = { expiresAt: { $gt: currentTime }, ...filters };
         const posts = await Post.find(filters)
@@ -78,8 +78,9 @@ postsRouter.get(
         .populate("author", "email firstName lastName")
         .populate("comments", "content");
       response.status(200).json(allPosts);
+      return;
     } catch (error) {
-      response.send({ message: error });
+      response.status(500).json({ message: error });
     }
   }
 );
@@ -89,16 +90,16 @@ postsRouter.get(
   "/:postId",
   verifyAuth,
   async (request: Request, response: Response) => {
-    validateRequest(PostID, request.params, response);
     const { postId } = request.params;
 
     try {
+      validateRequest(PostID, request.params);
       const post: IPostDocument | null = await Post.findById(postId)
         .populate("author", "email firstName lastName")
         .populate("comments", "content");
       response.status(200).json(post);
     } catch (error) {
-      response.send({ message: error });
+      response.status(500).json({ message: error });
     }
   }
 );
@@ -108,11 +109,11 @@ postsRouter.patch(
   "/:postId",
   verifyAuth,
   async (request: Request, response: Response) => {
-    validateRequest(PostID, request.params, response);
     const { postId } = request.params;
     const { body } = request;
 
     try {
+      validateRequest(PostID, request.params);
       const post: IPostDocument | null = await Post.findByIdAndUpdate(postId, {
         $set: {
           ...body,
@@ -130,10 +131,10 @@ postsRouter.delete(
   "/:postId",
   verifyAuth,
   async (request: Request, response: Response) => {
-    validateRequest(PostID, request.params, response);
     const { postId } = request.params;
 
     try {
+      validateRequest(PostID, request.params);
       const postToDelete: IPostDocument | null = await Post.findByIdAndDelete(
         postId
       );
@@ -149,11 +150,11 @@ postsRouter.post(
   "/:postId/like",
   verifyAuth,
   async (request: Request, response: Response) => {
-    validateRequest(PostID, request.params, response);
-    const userId: string = response.getHeader("userId") as string; // Cast userId to string since we expect a string back
+    const userId: string = request.headers["user-id"] as string; // Cast userId to string since we expect a string
     const { postId } = request.params;
 
     try {
+      validateRequest(PostID, request.params);
       const post = await Post.findById(postId);
       if (post) {
         if (post.isExpired()) {
@@ -195,22 +196,24 @@ postsRouter.post(
   "/:postId/dislike",
   verifyAuth,
   async (request: Request, response: Response) => {
-    validateRequest(PostID, request.params, response);
-    const userId: string = response.getHeader("userId") as string; // Cast userId to string since we expect a string back
+    const userId: string = request.headers["user-id"] as string; // Cast userId to string since we expect a string
     const { postId } = request.params;
 
     try {
+      validateRequest(PostID, request.params);
       const post = await Post.findById(postId);
       if (post) {
         if (post.isExpired()) {
           response
             .status(400)
             .json({ message: "You can not dislike an expired post" });
+          return;
         }
         if (String(post?.author) === userId) {
           response
             .status(400)
             .json({ message: "You can not dislike your own post" });
+          return;
         }
         if (post.isDislikedByUser(userId)) {
           response
@@ -227,10 +230,12 @@ postsRouter.post(
           });
 
           response.status(200).json({ message: "Successfully disliked post" });
+          return;
         }
       }
     } catch (error) {
-      response.send({ message: error });
+      response.status(500).send({ message: error });
+      return;
     }
   }
 );
@@ -240,9 +245,14 @@ postsRouter.post(
   "/:postId/comment",
   verifyAuth,
   async (request: Request, response: Response) => {
-    validateRequest(PostID, request.params, response);
-    validateRequest(CommentValidator, request.body, response);
-    const userId: string = response.getHeader("userId") as string; // Cast userId to string since we expect a string back
+    try {
+      validateRequest(PostID, request.params);
+      validateRequest(CommentValidator, request.body);
+    } catch (error) {
+      response.status(500).send({ message: error });
+      return;
+    }
+    const userId: string = request.headers["user-id"] as string; // Cast userId to string since we expect a string
     const { postId } = request.params;
     const { content } = request.body;
     const post = await Post.findById(postId);
@@ -269,8 +279,10 @@ postsRouter.post(
         $addToSet: { comments: comment.id },
       });
       response.status(201).json(comment);
-    } catch (err) {
-      response.send({ message: err });
+      return;
+    } catch (error) {
+      response.status(500).send({ message: error });
+      return;
     }
   }
 );
