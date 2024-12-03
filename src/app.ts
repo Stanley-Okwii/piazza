@@ -22,7 +22,7 @@ app.use("/api/posts", postsRouter);
 app.use("/api/comments", commentsRouter);
 
 mongoose.connect(`${env.DB_URI}`, { dbName: "piazza" }).then(() => {
-  console.log("Connected to DB");
+  console.log("Connected to Piazza Database");
 });
 
 app.listen(env.PORT, () => {

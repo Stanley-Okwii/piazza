@@ -58,9 +58,12 @@ export const PostSearchParams = (data: any): Joi.ValidationResult => {
     active: Joi.boolean(),
     expired: Joi.boolean(),
     // Ensure only topics included below are used when querying by topic
-    topic: Joi.string().min(4).max(50).valid('Politics', 'Health','Sports', 'Tech'),
+    topic: Joi.string()
+      .min(4)
+      .max(50)
+      .valid("Politics", "Health", "Sports", "Tech"),
   })
-  // Ensure that active search parameter can not be used with expired parameter
+    // Ensure that active search parameter can not be used with expired parameter
     .without("active", ["expired"])
     // Ensure that active search parameter is ALWAYS used together with the topic parameter
     .with("active", "topic");

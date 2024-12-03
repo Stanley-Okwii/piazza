@@ -6,7 +6,7 @@ import { env } from "node:process";
 import { UserJwtPayload, IPostDocument } from "../interfaces";
 import { Status } from "./enums";
 
-// Function to check and update `status` on Post documents after a find or findOne query
+// Util function to check and update `status` on Post documents after a find or findOne query
 export const setExpirationStatus = async (post: IPostDocument) => {
   if (post.isExpired() && post.status !== Status.Expired) {
     post.status = Status.Expired;
@@ -26,16 +26,14 @@ export const isLikedOrDislikedByUser = (
 };
 
 // Util function to validate request parameters
-export const validateRequest = (
-  validate: Function,
-  requestBody: Object
-) => {
+export const validateRequest = (validate: Function, requestBody: Object) => {
   const { error } = validate(requestBody);
   if (error) {
     throw error["details"][0]["message"];
   }
 };
 
+// Util function to verify auth token
 export const verifyAuth = (
   request: Request,
   response: Response,

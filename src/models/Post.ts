@@ -78,7 +78,6 @@ export const PostSchema: Schema<IPostDocument, PostModel> = new Schema<
   }
 );
 
-
 // SCHEMA Functions
 // Define function that returns a whether a post is expired or not
 PostSchema.method("isExpired", function isExpired(): boolean {
@@ -87,31 +86,30 @@ PostSchema.method("isExpired", function isExpired(): boolean {
 });
 
 // Define function that returns a whether a post is liked by a given user or not
-PostSchema.method(
-  "isLikedByUser",
-  function(userId):boolean {return isLikedOrDislikedByUser(userId, this.likes)},
-);
+PostSchema.method("isLikedByUser", function (userId): boolean {
+  return isLikedOrDislikedByUser(userId, this.likes);
+});
 
 // Define function that returns a whether a post is disliked by a given user or not
-PostSchema.method(
-  "isDislikedByUser",
-  function(userId: string): boolean {
-    return isLikedOrDislikedByUser(userId, this.dislikes);
-  }
-);
+PostSchema.method("isDislikedByUser", function (userId: string): boolean {
+  return isLikedOrDislikedByUser(userId, this.dislikes);
+});
 
 // SCHEMA MIDDLEWARE
 // Apply middleware after the `find` query to each document in the result set
-PostSchema.post("find", async function (posts: Array<IPostDocument>): Promise<void> {
-  const livePosts: Array<IPostDocument> = posts.filter(
-    (post) => post.status !== "Expired"
-  );
-  for (const post of livePosts) {
-    if (post.isExpired()) {
-      setExpirationStatus(post);
+PostSchema.post(
+  "find",
+  async function (posts: Array<IPostDocument>): Promise<void> {
+    const livePosts: Array<IPostDocument> = posts.filter(
+      (post) => post.status !== "Expired"
+    );
+    for (const post of livePosts) {
+      if (post.isExpired()) {
+        setExpirationStatus(post);
+      }
     }
   }
-});
+);
 
 // Apply middleware after  the`findOne` query to a single document
 PostSchema.post("findOne", async function (post: IPostDocument): Promise<void> {
