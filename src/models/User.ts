@@ -10,7 +10,7 @@ export const UserSchema: Schema<IUserDocument, UserModel> = new Schema<IUserDocu
     type: String,
     unique: true,
     required: true,
-    min: 5,
+    min: 6,
     max: 100
   },
   firstName: {
@@ -28,6 +28,8 @@ export const UserSchema: Schema<IUserDocument, UserModel> = new Schema<IUserDocu
   password: {
     type: String,
     required: true,
+    min: 6,
+    max: 25
   }
 },
 {

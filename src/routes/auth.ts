@@ -36,7 +36,7 @@ authRouter.post("/login", async (request: Request, response: Response) => {
     expiresIn: "7d", // Specifies that the token will expire in 7 days
     algorithm: "HS256", // Algorithm used to "sign" or encode the values of the JWT
   });
-  response.header("Auth-Token", token).send({ "Auth-Token": token });
+  response.header("auth-token", token).send({ "auth-token": token });
 });
 
 export { authRouter };

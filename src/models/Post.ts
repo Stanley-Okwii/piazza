@@ -1,4 +1,4 @@
-import { Model, model, Schema, Types } from "mongoose";
+import { Model, model, Schema } from "mongoose";
 
 import { IPost, IPostMethods, IPostDocument } from "../interfaces";
 import { setExpirationStatus, isLikedOrDislikedByUser } from "../utils";
@@ -77,7 +77,6 @@ export const PostSchema: Schema<IPostDocument, PostModel> = new Schema<
     },
   }
 );
-// TODO: add virtual attributes for like count and dislike count and reactions count
 
 
 // SCHEMA Functions
