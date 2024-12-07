@@ -2,12 +2,12 @@ FROM alpine
 WORKDIR /src
 RUN apk add --update nodejs npm
 
-COPY package*.json .
+COPY package*.json ./
 COPY .env .env
 
 RUN npm install
 
-COPY . .
+COPY . ./
 
 RUN npm run build
 

@@ -20,13 +20,13 @@ export const UserSchema: Schema<IUserDocument, UserModel> = new Schema<
     firstName: {
       type: String,
       required: true,
-      min: 5,
+      min: 3,
       max: 100,
     },
     lastName: {
       type: String,
       required: true,
-      min: 5,
+      min: 3,
       max: 100,
     },
     password: {

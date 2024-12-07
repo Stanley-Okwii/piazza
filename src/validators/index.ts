@@ -12,8 +12,8 @@ import {
 export const User = (data: IUser): Joi.ValidationResult => {
   const schemaValidation = Joi.object({
     email: Joi.string().required().min(6).max(100).email(),
-    firstName: Joi.string().required().min(5).max(100),
-    lastName: Joi.string().required().min(5).max(100),
+    firstName: Joi.string().required().min(3).max(100),
+    lastName: Joi.string().required().min(3).max(100),
     password: Joi.string()
       .required()
       .min(6)
