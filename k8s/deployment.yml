@@ -5,7 +5,7 @@ metadata:
   labels:
     app: piazza 
 spec:
-  replicas: 3
+  replicas: 5
   selector:
     matchLabels:
       app: piazza
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: piazza
-        image: stanleyo/piazza
+        image: stanleyo/piazza-image:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
