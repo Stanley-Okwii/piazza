@@ -21,12 +21,12 @@ postsRouter.post(
       validateRequest(PostValidator, request.body);
       const userId: string = request.headers["user-id"] as string; // Cast userId to string since we expect a string
       const { expiresIn } = request.body;
-      // Calculate the expiration date based on expiresIn value
+      // Calculate the expiration date based on expiresIn value (in Minutes)
       const expiresAt = new Date(Date.now() + expiresIn * 60 * 1000);
       const newPost = await Post.create({
+        ...request.body,
         author: userId,
         expiresAt,
-        ...request.body,
       });
 
       response.status(201).json(newPost);

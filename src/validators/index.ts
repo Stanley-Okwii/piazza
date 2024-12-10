@@ -44,7 +44,6 @@ export const UserID = (data: IUserID): Joi.ValidationResult => {
 
 export const Post = (data: IPost): Joi.ValidationResult => {
   const schemaValidation = Joi.object({
-    author: Joi.string().required().min(24).max(40), // uuid length validation
     title: Joi.string().required().min(6).max(150),
     content: Joi.string().required().min(15).max(256),
     topics: Joi.array().required().length(1),
